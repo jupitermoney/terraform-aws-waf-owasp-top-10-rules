@@ -115,15 +115,35 @@ resource "aws_waf_rule_group" "owasp_top_10" {
     rule_id  = aws_waf_rule.detect_admin_access.id
     type     = "REGULAR"
   }
+}
+
+resource "aws_waf_rule_group" "internal" {
+  depends_on = [
+    aws_waf_rule.detect_ssi,
+    aws_waf_rule.detect_bad_auth_tokens,
+    aws_waf_rule.mitigate_xss,
+    aws_waf_rule.detect_rfi_lfi_traversal,
+    aws_waf_rule.detect_admin_access,
+    aws_waf_rule.detect_php_insecure,
+    aws_waf_rule.restrict_sizes,
+    aws_waf_rule.enforce_csrf,
+    aws_waf_rule.detect_ssi,
+    aws_waf_rule.detect_blacklisted_ips,
+    aws_waf_rule.detect_vendor_access
+  ]
+
+  name = "${var.waf_prefix}-internal"
+  metric_name = replace("${var.waf_prefix}internal", "/[^0-9A-Za-z]/", "")
+
 
   activated_rule {
     action {
       type = var.rule_vendor_access_action_type
     }
 
-    priority = "11"
-    rule_id  = aws_waf_rule.detect_admin_access.id
-    type     = "REGULAR"
+    priority = "1"
+    rule_id = aws_waf_rule.detect_admin_access.id
+    type = "REGULAR"
   }
 
   tags = var.tags
